@@ -1,0 +1,68 @@
+name: Deploy a GitHub Pages
+
+on:
+  # Dispara al hacer push a la rama principal.
+  # Cubrimos "main" y "master" porque el nombre por defecto varía según el repo.
+  push:
+    branches: [main, master]
+  # Permite lanzar el despliegue a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+# Permisos obligatorios para publicar en Pages con el método moderno.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Evita que dos despliegues choquen entre sí.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        # npm ci usa el package-lock.json (ya está en el repo), es rápido y reproducible.
+        run: npm ci
+
+      - name: Compilar la app
+        # Llamamos a vite directamente para garantizar que la bandera --base llegue bien.
+        # --base=./ genera rutas relativas, correctas para un sitio de proyecto:
+        #   https://usuario.github.io/nombre-del-repo/
+        # Si tu repo se llama "usuario.github.io" (sitio personal), usa: npx vite build --base=/
+        run: npx vite build --base=./
+
+      - name: Verificar que dist/ existe y tiene contenido
+        # Paso de diagnóstico: si el build falla o dist/ queda vacío, lo verás aquí.
+        run: |
+          echo "=== Contenido de dist/ ==="
+          ls -la dist
+          test -f dist/index.html || { echo "ERROR: no se generó dist/index.html"; exit 1; }
+
+      - name: Subir el artefacto de producción
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Este entorno es obligatorio: conecta el job con GitHub Pages.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
