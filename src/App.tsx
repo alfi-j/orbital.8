@@ -149,8 +149,8 @@ export default function App() {
 
           {/* Pista inicial */}
           {!selectedBody && (
-            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 translate-y-[180px] text-center sm:translate-y-[210px]">
-              <p className="rounded-full border border-dashed border-white/20 bg-[#0a1024]/70 px-4 py-2 text-[12px] text-ink-dim backdrop-blur-sm">
+            <div className="pointer-events-none absolute inset-x-3 top-[52px] z-10 flex justify-center sm:top-14">
+              <p className="max-w-full rounded-full border border-dashed border-white/20 bg-[#0a1024]/70 px-5 py-2 text-center text-[12px] text-ink-dim backdrop-blur-sm sm:text-[12.5px]" style={{ textWrap: "balance" }}>
                 Haz clic en el <span className="font-semibold text-solar">Sol</span> o en cualquier{" "}
                 <span className="font-semibold text-ink">planeta</span> para ver su ficha
               </p>
